@@ -1,1 +1,422 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8">
+    <title>RMotos Catálogo</title>  
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+    rel="icon"
+    href="https://res.cloudinary.com/dzw0j83fi/image/upload/v1780002163/Rmotos_logo_ws3eyt.png"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    </head>
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+    --red: #D91E27;
+    --red-light: #fdeaea;
+    --bg: #F2F3F5;
+    --white: #fff;
+    --text: #1a1a1a;
+    --mid: #555;
+    --soft: #999;
+    --border: #e8e8e8;
+    --shadow: 0 2px 14px rgba(0,0,0,0.09);
+    --r: 14px;
+    --font: 'Nunito', sans-serif;
+    }
+
+    html, body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 0;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+    background: var(--white);
+    padding: 16px 20px 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    }
+    .logo-box {
+    max-width: 200px;
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .bell { position: relative; background: none; border: none; cursor: pointer; padding: 6px; }
+    .bell svg { width: 30px; height: 30px; display: block; }
+    .bell-dot {
+    position: absolute; top: 2px; right: 2px;
+    background: var(--red); color: #fff;
+    font-size: 11px; font-weight: 800;
+    width: 19px; height: 19px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--white);
+    }
+
+    /* ─── SEARCH ─── */
+    .search-area {
+    background: var(--white);
+    padding: 12px 20px 16px;
+    border-bottom: 1px solid var(--border);
+
+    position: sticky;
+    top: 74px;
+    z-index: 98;
+    }
+    .search-box {
+    display: flex; align-items: center; gap: 12px;
+    background: #f0f1f3;
+    border-radius: 14px;
+    padding: 14px 18px;
+    border: 1.5px solid var(--border);
+    }
+    .search-box svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .search-box input {
+    background: none; border: none; outline: none;
+    font-family: var(--font); font-size: 16px; color: var(--soft); width: 100%;
+    }
+
+    /* ─── CATEGORIES ─── */
+    .cat-section {
+    background: var(--white);
+    padding: 16px 0 8px;
+    border-bottom: 1px solid var(--border);
+    }
+    .cat-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 20px 12px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+    user-select: none;
+    }
+    .cat-scroll::-webkit-scrollbar { display: none; }
+    .cat-scroll.grabbing { cursor: grabbing; }
+
+    .cat {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 9px; flex-shrink: 0; cursor: pointer;
+    min-width: 76px;
+    }
+    .cat-circle {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: #f0f1f3;
+    transition: background .18s, transform .13s;
+    }
+    .cat-circle.on { background: var(--red); }
+    .cat:active .cat-circle { transform: scale(.92); }
+    .cat-name {
+    font-size: 13.5px; font-weight: 700;
+    color: var(--mid); text-align: center;
+    white-space: nowrap;
+    }
+    .cat-name.on { color: var(--red); }
+    .cat-line {
+    width: 30px; height: 3px;
+    background: var(--red); border-radius: 2px;
+    margin-top: -6px;
+    }
+
+    /* ─── PRODUCTS HEADER ─── */
+    .prod-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 20px 14px;
+    }
+    .prod-title { font-size: 24px; font-weight: 900; }
+    .filter-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none; cursor: pointer;
+    color: var(--red); font-family: var(--font);
+    font-size: 16px; font-weight: 700;
+    }
+    .filter-btn svg { width: 19px; height: 19px; }
+
+    /* ─── GRID ─── */
+    .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 0 14px 24px;
+    }
+
+    /* tablet */
+    @media (min-width: 768px) {
+    .grid { grid-template-columns: repeat(3, 1fr); padding: 0 20px 24px; }
+    .cat-circle { width: 80px; height: 80px; }
+    }
+    /* desktop */
+    @media (min-width: 1100px) {
+    .grid { grid-template-columns: repeat(4, 1fr); padding: 0 28px 28px; }
+    }
+    @media (min-width: 1440px) {
+    .grid { grid-template-columns: repeat(5, 1fr); }
+    }
+
+    /* ─── CARD ─── */
+    .card {
+    background: var(--white);
+    border-radius: var(--r);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    cursor: pointer;
+    transition: transform .14s;
+    }
+    .card:active { transform: scale(.97); }
+
+    .card-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #f7f7f7;
+    overflow: hidden;
+    position: relative;
+    }
+    .card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    }
+
+    .card-body {
+    padding: 11px 12px 14px;
+    display: flex; flex-direction: column; flex: 1; gap: 5px;
+    }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 4px; }
+    .badge {
+    font-size: 10px; font-weight: 800;
+    padding: 3px 7px; border-radius: 5px;
+    text-transform: uppercase; letter-spacing: .3px;
+    }
+    .bp { background: var(--red); color: #fff; }
+    .bo { background: #555; color: #fff; }
+    .bm { background: #e5e5e5; color: #444; }
+
+    .pname {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.3;
+         display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+
+        min-height: 36px;
+        }
+    .psku  { font-size: 12px; color: var(--soft); font-weight: 600; }
+    .pstock {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12.5px; color: var(--mid); font-weight: 600;
+    }
+    .pstock svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .pfooter { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+    .pprice { font-size: 18px; font-weight: 900; color: var(--red); }
+    .cart-btn {
+    width: 38px; height: 38px; border-radius: 10px;
+    border: 1.5px solid #f0d5d5;
+    background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: background .13s;
+    }
+    .cart-btn:active { background: var(--red-light); }
+    .cart-btn svg { width: 18px; height: 18px; color: var(--red); }
+
+    .logo-box img {
+        width: 150px;
+        height: 60px;
+
+    }
+    .cat-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #f0f1f3;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: background .18s, transform .13s;
+    }
+
+    .cat-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    }
+
+    .loader {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 0 10px;
+    }
+
+    .loader.show {
+    display: flex;
+    }
+
+    .spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid #e5e5e5;
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+    }
+
+    .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f1f1f;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    font-size: 25pxpx;
+    z-index: 9999;
+    }
+
+    .toast.show {
+    opacity: 1;
+    }
+    .cart-btn.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    }
+    .sin-resultados {
+    grid-column: 1 / -1;
+
+    background: white;
+    border-radius: 14px;
+
+    padding: 40px 20px;
+    text-align: center;
+
+    box-shadow: var(--shadow);
+}
+
+.sin-resultados h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.sin-resultados p {
+    color: var(--soft);
+    font-size: 14px;
+}
+#totalProductos {
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.skeleton {
+    height: 260px;
+    border-radius: 14px;
+    background: linear-gradient(
+        90deg,
+        #f2f2f2 25%,
+        #e8e8e8 50%,
+        #f2f2f2 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.2s infinite;
+}
+
+@keyframes loading {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+    </style>
+    <body>
+
+    <header class="header">
+    <div class="logo-box">
+        <img
+        src="https://res.cloudinary.com/dzw0j83fi/image/upload/v1780002163/Rmotos_logo_ws3eyt.png"
+        alt="Logo"
+        class="logo-img"
+        />
+    </div>
+    <button class="bell">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="bell-dot">2</span>
+    </button>
+    </header>
+
+    <div id="toast" class="toast"></div>
+
+    <div class="search-area">
+    <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2.3" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="search" id="buscar" placeholder="Buscar producto, código o marca...">
+
+    </div>
+    </div>
+
+    <div class="cat-section">
+    <div class="cat-scroll" id="cats"></div>
+    </div>
+
+    <div class="prod-header">
+    <h2 class="prod-title">Productos</h2>
+    <div id="totalProductos"></div>
+
+    <button class="filter-btn">
+        Filtrar
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+    </button>
+    </div>
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+        </div>
+    <div class="grid" id="grid"></div>
+
+
+
+    <script src="app.js"></script>
+    </body>
+    </html>
