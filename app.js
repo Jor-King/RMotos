@@ -1,10 +1,21 @@
 const API = "https://script.google.com/macros/s/AKfycbxt5EmzUQ2d3mEQRr0eXYmCoA-Mgzbeh70XtfMYSt1j_vGA3OTkrQKJGtAZMunXySM1/exec";
 
 let todosProductos = [];
-let productosVisibles = 20;
+
+let pagina = 1;
+
+const LIMITE = 20;
+
+let hayMas = true;
 
 let timeoutBusqueda;
+
 let cargandoMas = false;
+
+let textoBusqueda = "";
+
+let totalProductosServidor = 0;
+let totalPaginas = 1;
 
 window.addEventListener(
   "load",
@@ -23,23 +34,33 @@ function ocultarLoader() {
         .classList.remove("show");
 }
 
-async function cargarProductos(texto = "") {
+async function cargarProductos(reset = false) {
+
+    if (reset) {
+
+        pagina = 1;
+        hayMas = true;
+        todosProductos = [];
+
+    }
+
+    if (!hayMas) return;
 
     try {
 
         mostrarLoader();
 
         const res = await fetch(
-            `${API}?accion=productos&q=${encodeURIComponent(texto)}`
+            `${API}?accion=productos&page=${pagina}&limit=${LIMITE}&q=${encodeURIComponent(textoBusqueda)}`
         );
 
         const data = await res.json();
 
-        console.log(data);
+        
+        totalProductosServidor = data.total;
+        totalPaginas = Math.ceil(data.total / LIMITE);
 
         todosProductos = data.productos || [];
-
-        productosVisibles = 20;
 
         renderizar();
 
@@ -55,27 +76,160 @@ async function cargarProductos(texto = "") {
 
 }
 
+async function cambiarPagina(nuevaPagina) {
+
+    const totalPaginas =
+        Math.ceil(totalProductosServidor / LIMITE);
+
+    if (nuevaPagina < 1 || nuevaPagina > totalPaginas) {
+        return;
+    }
+
+    pagina = nuevaPagina;
+
+    todosProductos = [];
+
+    mostrarLoader();
+
+    try {
+
+        await cargarProductos();
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    } finally {
+
+        ocultarLoader();
+
+    }
+
+}
+
+function renderizarPaginacion(){
+
+    const contenedor =
+        document.getElementById("pagination");
+
+    const totalPaginas =
+        Math.ceil(
+            totalProductosServidor / LIMITE
+        );
+
+    if(totalPaginas <= 1){
+
+        contenedor.innerHTML = "";
+
+        return;
+
+    }
+
+    let paginas = [];
+
+    paginas.push(1);
+
+    let inicio = Math.max(2,pagina-2);
+
+    let fin = Math.min(totalPaginas-1,pagina+2);
+
+    if(inicio > 2){
+
+        paginas.push("...");
+
+    }
+
+    for(let i=inicio;i<=fin;i++){
+
+        paginas.push(i);
+
+    }
+
+    if(fin < totalPaginas-1){
+
+        paginas.push("...");
+
+    }
+
+    if(totalPaginas>1){
+
+        paginas.push(totalPaginas);
+
+    }
+
+    contenedor.innerHTML = `
+
+        <div class="pagination-info">
+
+            Página ${pagina} de ${totalPaginas}
+
+        </div>
+
+        <div class="pagination-buttons">
+
+            <button
+                class="page-btn page-nav"
+                ${pagina==1?"disabled":""}
+                onclick="cambiarPagina(${pagina-1})">
+
+                ←
+
+            </button>
+
+            ${paginas.map(p=>{
+
+                if(p==="..."){
+
+                    return `<span class="page-dots">...</span>`;
+
+                }
+
+                return `
+                    <button
+                        class="page-btn ${p===pagina?"active":""}"
+                        onclick="cambiarPagina(${p})">
+
+                        ${p}
+
+                    </button>
+                `;
+
+            }).join("")}
+
+            <button
+                class="page-btn page-nav"
+                ${pagina==totalPaginas?"disabled":""}
+                onclick="cambiarPagina(${pagina+1})">
+
+                →
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
 function renderizar() {
 
     const contenedor =
         document.getElementById("grid");
 
     contenedor.innerHTML = "";
+
     const totalProductos =
         document.getElementById("totalProductos");
 
     if (totalProductos) {
+
         totalProductos.textContent =
-            `${todosProductos.length} productos`;
+            `${totalProductosServidor} productos`;
+
     }
 
-    const productosMostrar =
-        todosProductos.slice(
-            0,
-            productosVisibles
-        );
-
-    if (productosMostrar.length === 0) {
+    if (todosProductos.length === 0) {
 
         contenedor.innerHTML = `
             <div class="sin-resultados">
@@ -88,19 +242,18 @@ function renderizar() {
         `;
 
         return;
+
     }
 
-    productosMostrar.forEach(producto => {
+    todosProductos.forEach(producto => {
 
         const cartItem =
-            getCartItem(
-            producto.id_producto
-        );
+            getCartItem(producto.id_producto);
 
         const cantidad =
             cartItem
-            ? cartItem.cantidad
-            : 0;
+                ? cartItem.cantidad
+                : 0;
 
         contenedor.insertAdjacentHTML(
             "beforeend",
@@ -108,36 +261,35 @@ function renderizar() {
             <div class="card">
 
                 <div class="card-img">
-                <img
-                    src="${producto.imagen_url || ''}"
-                    alt="${producto.nombre || ''}"
-                    loading="lazy"
-                    onclick="abrirImagen('${producto.imagen_url}')"
-                    onerror="this.src='https://placehold.co/500x500?text=RMotos'"
-                >
+                    <img
+                        src="${producto.imagen_url || ''}"
+                        alt="${producto.nombre || ''}"
+                        loading="lazy"
+                        onclick="abrirImagen('${producto.imagen_url}')"
+                        onerror="this.src='https://placehold.co/500x500?text=RMotos'">
                 </div>
 
                 <div class="card-body">
 
-                <div class="badge-row">
+                    <div class="badge-row">
 
-                    <span class="badge bp">
-                        ${producto.marca || ''}
-                    </span>
+                        <span class="badge bp">
+                            ${producto.marca || ''}
+                        </span>
 
-                    <span class="badge bm">
-                        ${producto.categoria || ''}
-                    </span>
+                        <span class="badge bm">
+                            ${producto.categoria || ''}
+                        </span>
 
-                    <span class="badge ${
-                        producto.disponibilidad === "Disponible"
-                            ? "bp"
-                            : "bo"
-                    }">
-                        ${producto.disponibilidad || ""}
-                    </span>
+                        <span class="badge ${
+                            producto.disponibilidad === "Disponible"
+                                ? "bp"
+                                : "bo"
+                        }">
+                            ${producto.disponibilidad || ""}
+                        </span>
 
-                </div>
+                    </div>
 
                     <div class="pname">
                         ${producto.nombre || ''}
@@ -148,41 +300,42 @@ function renderizar() {
                     </div>
 
                     <div class="pfooter">
-                        <div class="pprice">
-                            $${Number(
-                                producto.precio_venta || 0
-                            ).toLocaleString("es-CO")}
-                        </div>
+                      <div class="pprice">
+                          ${
+                              producto.disponibilidad === "Disponible"
+                                  ? `$${Number(producto.precio_venta || 0).toLocaleString("es-CO")}`
+                                  : `<span class="badge bo">Precio A Consultar</span>`
+                          }
+                      </div>
 
                         <button
-                                class="cart-btn ${cantidad > 0 ? 'added' : ''}"
-                                ${cantidad > 0 ? 'disabled="true"' : ''}
-                                onclick='if(${cantidad <= 0}) addToCart({
+                            class="cart-btn ${cantidad > 0 ? 'added' : ''}"
+                            ${cantidad > 0 ? 'disabled' : ''}
+                            onclick='if(${cantidad <= 0}) addToCart({
 
-                                    id_producto:"${producto.id_producto}",
+                                id_producto:"${producto.id_producto}",
 
-                                    nombre:"${producto.nombre}",
+                                nombre:"${producto.nombre}",
 
-                                    imagen_url:"${producto.imagen_url}",
+                                imagen_url:"${producto.imagen_url}",
 
-                                    precio_venta:${producto.precio_venta}
+                                precio_venta:${producto.precio_venta}
 
-                                })'>
+                            })'>
 
+                            <svg
+                                class="cart-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.3">
 
-                                <svg
-                                    class="cart-icon"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2.3">
+                                <circle cx="9" cy="20" r="1"/>
+                                <circle cx="18" cy="20" r="1"/>
 
-                                    <circle cx="9" cy="20" r="1"/>
-                                    <circle cx="18" cy="20" r="1"/>
+                                <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 8H7"/>
 
-                                    <path d="M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 8H7"/>
-
-                                </svg>
+                            </svg>
 
                         </button>
 
@@ -195,58 +348,27 @@ function renderizar() {
         );
 
     });
+    renderizarPaginacion();
 
 }
 
-window.addEventListener("scroll", () => {
 
-    if (cargandoMas) return;
-
-    const cercaDelFinal =
-        window.innerHeight +
-        window.scrollY >=
-        document.body.offsetHeight - 300;
-
-    if (
-        cercaDelFinal &&
-        productosVisibles < todosProductos.length
-    ) {
-
-        cargandoMas = true;
-
-        mostrarLoader();
-
-        setTimeout(() => {
-
-            productosVisibles += 20;
-
-            renderizar();
-
-            ocultarLoader();
-
-            cargandoMas = false;
-
-        }, 150);
-
-    }
-
-});
 
 document
-    .getElementById("buscar")
-    .addEventListener("input", e => {
+.getElementById("buscar")
+.addEventListener("input",e=>{
 
-        clearTimeout(timeoutBusqueda);
+    clearTimeout(timeoutBusqueda);
 
-        timeoutBusqueda = setTimeout(() => {
+    timeoutBusqueda=setTimeout(()=>{
 
-            cargarProductos(
-                e.target.value
-            );
+        textoBusqueda=e.target.value;
 
-        }, 300);
+        cargarProductos(true);
 
-    });
+    },300);
+
+});
 
 cargarProductos();
 
@@ -314,29 +436,33 @@ function addToCart(producto) {
 
 function updateCartCounter() {
 
-  const carrito =
-    JSON.parse(
-      localStorage.getItem("cart")
-    ) || [];
+    const carrito =
+        JSON.parse(
+            localStorage.getItem("cart")
+        ) || [];
 
-  const total =
-    carrito.reduce(
-      (acc, item) =>
-        acc + item.cantidad,
-      0
-    );
+    const total =
+        carrito.reduce(
+            (acc, item) =>
+                acc + item.cantidad,
+            0
+        );
 
-  const badge =
-    document.getElementById(
-      "notificationCount"
-    );
+    const badge =
+        document.getElementById(
+            "notificationCount"
+        );
 
-  badge.textContent = total;
+    if (!badge) {
+        return;
+    }
 
-  badge.style.display =
-    total > 0
-      ? "flex"
-      : "none";
+    badge.textContent = total;
+
+    badge.style.display =
+        total > 0
+            ? "flex"
+            : "none";
 
 }
 
@@ -565,9 +691,13 @@ function renderCart(carrito) {
             style="
               font-size:14px;
               font-weight:900;
-              color:var(--red);
+              color:${Number(item.precio) > 0 ? "var(--red)" : "#ff8c00"};
             ">
-            ${formatMoney(item.precio)}
+            ${
+              Number(item.precio) > 0
+                ? formatMoney(item.precio)
+                : "Precio A Consultar"
+            }
           </div>
 
           <div

@@ -291,9 +291,9 @@
     }
 
     @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+      to {
+          transform: rotate(360deg);
+      }
     }
 
     .toast {
@@ -750,6 +750,118 @@
     }
 
 }
+
+.pagination{
+
+    margin:15px 80px 40px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    gap:14px;
+
+}
+.pagination.loading{
+
+    pointer-events:none;
+
+    opacity:.5;
+
+    transition:.2s;
+
+}
+.pagination-info{
+
+    font-size:14px;
+
+    color:#666;
+
+    font-weight:700;
+
+}
+
+.pagination-buttons{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+}
+
+.page-btn{
+
+    min-width:42px;
+
+    height:42px;
+
+    border-radius:12px;
+
+    border:1px solid #e5e5e5;
+
+    background:#fff;
+
+    color:#444;
+
+    font-size:14px;
+
+    font-weight:800;
+
+    cursor:pointer;
+
+    transition:.18s;
+
+}
+
+.page-btn:hover{
+
+    background:#f7f7f7;
+
+}
+
+.page-btn.active{
+
+    background:var(--red);
+
+    color:#fff;
+
+    border-color:var(--red);
+
+    box-shadow:0 5px 14px rgba(217,30,39,.25);
+
+}
+
+.page-btn:disabled{
+
+    opacity:.35;
+
+    cursor:not-allowed;
+
+}
+
+.page-dots{
+
+    padding:0 4px;
+
+    color:#888;
+
+    font-weight:800;
+
+}
+
+.page-nav{
+
+    width:48px;
+
+}
     </style>
     <body>
 
@@ -760,6 +872,9 @@
         alt="Logo"
         class="logo-img"
         />
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+        </div>
     </div>
 
     <div class="header-right">
@@ -803,11 +918,10 @@
         </svg>
     </button>
     </div>
-        <div class="loader" id="loader">
-            <div class="spinner"></div>
-        </div>
+
     <div class="grid" id="grid"></div>
 
+    <div id="pagination" class="pagination"></div>  
 
     <div id="modalImagen" class="modal-imagen">
 
